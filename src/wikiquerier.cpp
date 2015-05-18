@@ -258,6 +258,8 @@ WikiQuerier::fetchTextChunk(QVector<int> pageIds)
 		auto outerObj = QJsonDocument::fromJson(reply->readAll()).object();
 		reply->deleteLater();
 
+		qDebug() << "\t1 text chunk obtained";
+
 		if (!outerObj.contains("query"))
 		{
 			qDebug() << "Query failed. Raw reply:" << outerObj;
@@ -292,10 +294,7 @@ WikiQuerier::fetchTextChunk(QVector<int> pageIds)
 		}
 
 		if (!continuing)
-		{
-			qDebug() << "\t1 text chunk obtained";
 			emit wikiTextFetched(_tmp_texts);
-		}
 	});
 	// TODO: Handle network errors
 }

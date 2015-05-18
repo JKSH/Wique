@@ -132,7 +132,7 @@ WikiQuerier::fetchPageListChunk(int namespaceId, const QString& apcontinue)
 		}
 
 		bool continuingHere = outerObj.contains("query-continue");
-		bool continuingNext;
+		bool continuingNext = true;
 		if (continuingHere)
 		{
 			// Kick off the next set of downloads

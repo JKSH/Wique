@@ -88,8 +88,9 @@ Database::lastModified(int pageId) const
 	q.bindValue(":id", pageId);
 	if (!q.exec())
 		qWarning() << "ERROR: Database: Loading timestamps:" << q.lastError();
-	q.next();
-	return q.value("timestamp").toString();
+	if (q.next())
+		return q.value("timestamp").toString();
+	return "";
 }
 
 void

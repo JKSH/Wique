@@ -247,15 +247,18 @@ Database::deepScanForRedirects()
 void
 Database::updateModel()
 {
-	// Refresh. Block modelAboutToBeReset()/modelReset() signals
-	// to maintain the views' sort order and scroll position
+
+	// Blocking modelAboutToBeReset()/modelReset() signals helps
+	// to maintain the views' sort order and scroll position...
+	// ...but it also blocks the view from adding new rows :(
+
 	QSqlQuery q("SELECT id, redirection, timestamp, title FROM Pages");
 
-	_model->blockSignals(true);
+//	_model->blockSignals(true);
 	_model->setQuery(q);
 	while (_model->canFetchMore())
 		_model->fetchMore();
-	_model->blockSignals(false);
+//	_model->blockSignals(false);
 }
 
 QString

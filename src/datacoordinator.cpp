@@ -56,6 +56,7 @@ DataCoordinator::DataCoordinator(QObject* parent) :
 		{
 			qDebug() << "...No updates found.\n";
 			qDebug() << "Database refresh completed.\n";
+			emit currentJobFinished();
 		}
 		else
 		{
@@ -63,8 +64,11 @@ DataCoordinator::DataCoordinator(QObject* parent) :
 			wq->downloadPages(updatedIds);
 		}
 	});
-	connect(wq, &WikiQuerier::wikiTextFetched,
-			db, &Database::updateDatabase);
+	connect(wq, &WikiQuerier::wikiTextFetched, [=](const QJsonArray& wikiText)
+	{
+		db->updateDatabase(wikiText);
+		emit currentJobFinished();
+	});
 }
 
 /**********************************************************************\

@@ -13,9 +13,16 @@ DataCoordinator::DataCoordinator(QObject* parent) :
 {
 	connect(wq, &WikiQuerier::pageListFetched, [=](const QVector<int>& onlineIds)
 	{
+		// Don't delete anything if the list is incomplete
+		if (!wq->lastOperationWasCompleted())
+		{
+			qDebug() << "(2) Skipping check for deleted pages.\n";
+			qDebug() << "(3) Skipping deletion from database.\n";
+			return;
+		}
+
 		qDebug() << "(2) Checking for deleted pages...";
 
-		// ASSUMPTION: The page list is exhaustive
 		auto localIds = db->allPageIds().toList().toSet();
 		auto removedIds = localIds - onlineIds.toList().toSet();
 		if (removedIds.isEmpty())

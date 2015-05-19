@@ -22,7 +22,8 @@ static const QString apiUrl = "https://wiki.qt.io/api.php";
 WikiQuerier::WikiQuerier(QObject* parent) :
 	QObject(parent),
 	nam(nullptr),
-	isBusy(false)
+	isBusy(false),
+	_lastOpWasCompleted(false)
 {
 }
 
@@ -39,6 +40,7 @@ WikiQuerier::queryPageList()
 	}
 
 	isBusy = true;
+	_lastOpWasCompleted = false;
 	namespaceListIdx = 0;
 	_tmp_allIds.clear();
 	fetchPageListChunk();
@@ -58,6 +60,7 @@ WikiQuerier::queryLastModified(const QVector<int>& pageIds)
 	qDebug() << "(4) Fetching page timestamps...";
 
 	isBusy = true;
+	_lastOpWasCompleted = false;
 	idChunkIdx = 0;
 	_tmp_allIds_chunked.clear();
 	_tmp_allTimestamps.clear();
@@ -79,6 +82,7 @@ WikiQuerier::downloadPages(const QVector<int>& pageIds)
 		return;
 
 	isBusy = true;
+	_lastOpWasCompleted = false;
 	textChunkIdx = 0;
 	_tmp_texts_chunked.clear();
 	_tmp_texts = QJsonArray();
@@ -156,6 +160,7 @@ WikiQuerier::fetchPageListChunk(int namespaceId, const QString& apcontinue)
 		{
 			// ASSUMPTION: The downloaded list is only ever for detailed updates
 			qDebug() << "...Found" << _tmp_allIds.count() << "pages in total.\n";
+			_lastOpWasCompleted = true;
 			finalizePageLists();
 		}
 	});
@@ -214,6 +219,7 @@ WikiQuerier::fetchTimestampChunk(QVector<int> ids)
 		{
 			// ASSUMPTION: The downloaded list is only ever for detailed updates
 			qDebug() << "...Found" << _tmp_allTimestamps.count() << "timestamps in total.\n";
+			_lastOpWasCompleted = true;
 			finalizeTimestamps();
 		}
 	});
@@ -291,7 +297,10 @@ WikiQuerier::fetchTextChunk(QVector<int> pageIds)
 		}
 
 		if (!continuing)
+		{
+			_lastOpWasCompleted = true;
 			finalizeWikiText();
+		}
 	});
 	// TODO: Handle network errors
 }

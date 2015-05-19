@@ -156,9 +156,7 @@ WikiQuerier::fetchPageListChunk(int namespaceId, const QString& apcontinue)
 		{
 			// ASSUMPTION: The downloaded list is only ever for detailed updates
 			qDebug() << "...Found" << _tmp_allIds.count() << "pages in total.\n";
-
-			isBusy = false;
-			emit pageListFetched(_tmp_allIds);
+			finalizePageLists();
 		}
 	});
 	// TODO: Handle network errors
@@ -216,8 +214,7 @@ WikiQuerier::fetchTimestampChunk(QVector<int> ids)
 		{
 			// ASSUMPTION: The downloaded list is only ever for detailed updates
 			qDebug() << "...Found" << _tmp_allTimestamps.count() << "timestamps in total.\n";
-			isBusy = false;
-			emit timestampsFetched(_tmp_allTimestamps);
+			finalizeTimestamps();
 		}
 	});
 	// TODO: Handle network errors
@@ -294,10 +291,28 @@ WikiQuerier::fetchTextChunk(QVector<int> pageIds)
 		}
 
 		if (!continuing)
-		{
-			isBusy = false;
-			emit wikiTextFetched(_tmp_texts);
-		}
+			finalizeWikiText();
 	});
 	// TODO: Handle network errors
+}
+
+void
+WikiQuerier::finalizePageLists()
+{
+	isBusy = false;
+	emit pageListFetched(_tmp_allIds);
+}
+
+void
+WikiQuerier::finalizeTimestamps()
+{
+	isBusy = false;
+	emit timestampsFetched(_tmp_allTimestamps);
+}
+
+void
+WikiQuerier::finalizeWikiText()
+{
+	isBusy = false;
+	emit wikiTextFetched(_tmp_texts);
 }

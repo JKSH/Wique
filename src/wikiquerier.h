@@ -34,6 +34,10 @@ private:
 	void fetchTimestampChunk(QVector<int> ids);
 	void fetchTextChunk(QVector<int> pageIds);
 
+	void finalizePageLists();
+	void finalizeTimestamps();
+	void finalizeWikiText();
+
 	QNetworkAccessManager* nam;
 	bool isBusy;
 	int namespaceListIdx;

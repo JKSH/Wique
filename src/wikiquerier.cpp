@@ -127,8 +127,8 @@ WikiQuerier::fetchPageListChunk(int namespaceId, const QString& apcontinue)
 		if (!outerObj.contains("query"))
 		{
 			qDebug() << "ERROR: WikiQuerier: Query failed. Raw reply is" << outerObj;
+			finalizePageLists();
 			return;
-			// TODO: Signal that the refresh operation has finished (albeit prematurely)
 		}
 
 		bool continuingHere = outerObj.contains("query-continue");
@@ -193,8 +193,8 @@ WikiQuerier::fetchTimestampChunk(QVector<int> ids)
 		if (!outerObj.contains("query"))
 		{
 			qDebug() << "Query failed. Raw reply:" << outerObj;
+			finalizeTimestamps();
 			return;
-			// TODO: Signal that the refresh operation has finished (albeit prematurely)
 		}
 
 		// Kick off the next set of downloads
@@ -260,8 +260,8 @@ WikiQuerier::fetchTextChunk(QVector<int> pageIds)
 		if (!outerObj.contains("query"))
 		{
 			qDebug() << "Query failed. Raw reply:" << outerObj;
+			finalizeWikiText();
 			return;
-			// TODO: Signal that the operation has finished (albeit prematurely)
 		}
 
 		// Kick off the next set of downloads before processing local data

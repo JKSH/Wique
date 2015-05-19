@@ -54,16 +54,20 @@ WikiQuerier::queryLastModified(const QVector<int>& pageIds)
 		qDebug() << "ERROR: WikiQuerier is busy.";
 		return;
 	}
-	if (pageIds.isEmpty())
-		return;
-
-	qDebug() << "(4) Fetching page timestamps...";
 
 	isBusy = true;
 	_lastOpWasCompleted = false;
 	idChunkIdx = 0;
 	_tmp_allIds_chunked.clear();
 	_tmp_allTimestamps.clear();
+
+	if (pageIds.isEmpty())
+	{
+		finalizeTimestamps();
+		return;
+	}
+
+	qDebug() << "(4) Fetching page timestamps...";
 	for (int i = 0; i < pageIds.count(); i += 50)
 		_tmp_allIds_chunked << pageIds.mid(i, 50);
 	fetchTimestampChunk(_tmp_allIds_chunked[0]);
@@ -78,14 +82,18 @@ WikiQuerier::downloadPages(const QVector<int>& pageIds)
 		qDebug() << "ERROR: WikiQuerier is busy.";
 		return;
 	}
-	if (pageIds.isEmpty())
-		return;
 
 	isBusy = true;
 	_lastOpWasCompleted = false;
 	textChunkIdx = 0;
 	_tmp_texts_chunked.clear();
 	_tmp_texts = QJsonArray();
+
+	if (pageIds.isEmpty())
+	{
+		finalizeWikiText();
+		return;
+	}
 	for (int i = 0; i < pageIds.count(); i += 50)
 		_tmp_texts_chunked << pageIds.mid(i, 50);
 	fetchTextChunk(_tmp_texts_chunked[0]);

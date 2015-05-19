@@ -294,7 +294,10 @@ WikiQuerier::fetchTextChunk(QVector<int> pageIds)
 		}
 
 		if (!continuing)
+		{
+			isBusy = false;
 			emit wikiTextFetched(_tmp_texts);
+		}
 	});
 	// TODO: Handle network errors
 }

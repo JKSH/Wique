@@ -14,7 +14,7 @@
 // TODO: Extract error messages from MediaWiki replies (e.g. if querying fails)
 
 // TODO: Allow user-configurable URL
-static const QString apiUrl = "https://wiki.qt.io/api.php";
+static const QString apiUrl = "http://wiki.qt.io/api.php";
 
 /**********************************************************************\
  * CONSTRUCTOR/DESTRUCTOR

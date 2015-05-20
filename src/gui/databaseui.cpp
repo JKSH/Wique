@@ -56,3 +56,14 @@ DatabaseUI::writeLog(const QString &message)
 {
 	ui->textEdit_log->append(message);
 }
+
+/**********************************************************************\
+ * PUBLIC SLOTS
+\**********************************************************************/
+void
+DatabaseUI::setButtonsEnabled(bool enabled)
+{
+	ui->button_refreshDb->setEnabled(enabled);
+	ui->button_forceScanForRedirections->setEnabled(enabled);
+	ui->button_exportData->setEnabled(enabled);
+}

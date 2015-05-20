@@ -29,6 +29,9 @@ public:
 	void setDbModel(QAbstractTableModel* model);
 	void writeLog(const QString& message);
 
+public slots:
+	void setButtonsEnabled(bool enabled = true);
+
 private:
 	Ui::DatabaseUI *ui;
 

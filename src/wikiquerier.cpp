@@ -22,7 +22,8 @@ static const QString apiUrl = "https://wiki.qt.io/api.php";
 WikiQuerier::WikiQuerier(QObject* parent) :
 	QObject(parent),
 	nam(nullptr),
-	isBusy(false)
+	isBusy(false),
+	_lastOpWasCompleted(false)
 {
 }
 
@@ -39,6 +40,7 @@ WikiQuerier::queryPageList()
 	}
 
 	isBusy = true;
+	_lastOpWasCompleted = false;
 	namespaceListIdx = 0;
 	_tmp_allIds.clear();
 	fetchPageListChunk();
@@ -52,15 +54,20 @@ WikiQuerier::queryLastModified(const QVector<int>& pageIds)
 		qDebug() << "ERROR: WikiQuerier is busy.";
 		return;
 	}
-	if (pageIds.isEmpty())
-		return;
-
-	qDebug() << "(4) Fetching page timestamps...";
 
 	isBusy = true;
+	_lastOpWasCompleted = false;
 	idChunkIdx = 0;
 	_tmp_allIds_chunked.clear();
 	_tmp_allTimestamps.clear();
+
+	if (pageIds.isEmpty())
+	{
+		finalizeTimestamps();
+		return;
+	}
+
+	qDebug() << "(4) Fetching page timestamps...";
 	for (int i = 0; i < pageIds.count(); i += 50)
 		_tmp_allIds_chunked << pageIds.mid(i, 50);
 	fetchTimestampChunk(_tmp_allIds_chunked[0]);
@@ -75,13 +82,18 @@ WikiQuerier::downloadPages(const QVector<int>& pageIds)
 		qDebug() << "ERROR: WikiQuerier is busy.";
 		return;
 	}
-	if (pageIds.isEmpty())
-		return;
 
 	isBusy = true;
+	_lastOpWasCompleted = false;
 	textChunkIdx = 0;
 	_tmp_texts_chunked.clear();
 	_tmp_texts = QJsonArray();
+
+	if (pageIds.isEmpty())
+	{
+		finalizeWikiText();
+		return;
+	}
 	for (int i = 0; i < pageIds.count(); i += 50)
 		_tmp_texts_chunked << pageIds.mid(i, 50);
 	fetchTextChunk(_tmp_texts_chunked[0]);
@@ -127,8 +139,8 @@ WikiQuerier::fetchPageListChunk(int namespaceId, const QString& apcontinue)
 		if (!outerObj.contains("query"))
 		{
 			qDebug() << "ERROR: WikiQuerier: Query failed. Raw reply is" << outerObj;
+			finalizePageLists();
 			return;
-			// TODO: Signal that the refresh operation has finished (albeit prematurely)
 		}
 
 		bool continuingHere = outerObj.contains("query-continue");
@@ -156,9 +168,8 @@ WikiQuerier::fetchPageListChunk(int namespaceId, const QString& apcontinue)
 		{
 			// ASSUMPTION: The downloaded list is only ever for detailed updates
 			qDebug() << "...Found" << _tmp_allIds.count() << "pages in total.\n";
-
-			isBusy = false;
-			emit pageListFetched(_tmp_allIds);
+			_lastOpWasCompleted = true;
+			finalizePageLists();
 		}
 	});
 	// TODO: Handle network errors
@@ -195,8 +206,8 @@ WikiQuerier::fetchTimestampChunk(QVector<int> ids)
 		if (!outerObj.contains("query"))
 		{
 			qDebug() << "Query failed. Raw reply:" << outerObj;
+			finalizeTimestamps();
 			return;
-			// TODO: Signal that the refresh operation has finished (albeit prematurely)
 		}
 
 		// Kick off the next set of downloads
@@ -216,8 +227,8 @@ WikiQuerier::fetchTimestampChunk(QVector<int> ids)
 		{
 			// ASSUMPTION: The downloaded list is only ever for detailed updates
 			qDebug() << "...Found" << _tmp_allTimestamps.count() << "timestamps in total.\n";
-			isBusy = false;
-			emit timestampsFetched(_tmp_allTimestamps);
+			_lastOpWasCompleted = true;
+			finalizeTimestamps();
 		}
 	});
 	// TODO: Handle network errors
@@ -263,8 +274,8 @@ WikiQuerier::fetchTextChunk(QVector<int> pageIds)
 		if (!outerObj.contains("query"))
 		{
 			qDebug() << "Query failed. Raw reply:" << outerObj;
+			finalizeWikiText();
 			return;
-			// TODO: Signal that the operation has finished (albeit prematurely)
 		}
 
 		// Kick off the next set of downloads before processing local data
@@ -294,7 +305,31 @@ WikiQuerier::fetchTextChunk(QVector<int> pageIds)
 		}
 
 		if (!continuing)
-			emit wikiTextFetched(_tmp_texts);
+		{
+			_lastOpWasCompleted = true;
+			finalizeWikiText();
+		}
 	});
 	// TODO: Handle network errors
+}
+
+void
+WikiQuerier::finalizePageLists()
+{
+	isBusy = false;
+	emit pageListFetched(_tmp_allIds);
+}
+
+void
+WikiQuerier::finalizeTimestamps()
+{
+	isBusy = false;
+	emit timestampsFetched(_tmp_allTimestamps);
+}
+
+void
+WikiQuerier::finalizeWikiText()
+{
+	isBusy = false;
+	emit wikiTextFetched(_tmp_texts);
 }

@@ -23,6 +23,7 @@ public:
 	void queryPageList();
 	void queryLastModified(const QVector<int>& pageIds);
 	void downloadPages(const QVector<int>& pageIds);
+	bool lastOperationWasCompleted() const { return _lastOpWasCompleted; }
 
 signals:
 	void pageListFetched(const QVector<int>& pageIds) const;
@@ -34,8 +35,13 @@ private:
 	void fetchTimestampChunk(QVector<int> ids);
 	void fetchTextChunk(QVector<int> pageIds);
 
+	void finalizePageLists();
+	void finalizeTimestamps();
+	void finalizeWikiText();
+
 	QNetworkAccessManager* nam;
 	bool isBusy;
+	bool _lastOpWasCompleted;
 	int namespaceListIdx;
 
 	// List of all IDs

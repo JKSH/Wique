@@ -14,6 +14,9 @@ class DataCoordinator : public QObject
 {
 	Q_OBJECT
 
+signals:
+	void currentJobFinished() const;
+
 public:
 	explicit DataCoordinator(QObject* parent = nullptr);
 
@@ -22,10 +25,16 @@ public:
 
 	void refreshDatabase();
 	void forceRederiveData()
-	{ db->deepScanForRedirects(); }
+	{
+		db->deepScanForRedirects();
+		emit currentJobFinished();
+	}
 
 	void exportData(const QString& exportDir)
-	{ db->exportWikiText(exportDir); }
+	{
+		db->exportWikiText(exportDir);
+		emit currentJobFinished();
+	}
 
 	QAbstractTableModel* dbModel() const
 	{ return db->dbModel(); }

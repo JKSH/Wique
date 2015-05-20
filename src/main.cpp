@@ -54,12 +54,27 @@ int main(int argc, char *argv[])
 	dataCoordinator.setNetworkAccessManager(&netAccessManager);
 
 	// Handle signals from the GUI
-	QObject::connect(ui, &DatabaseUI::refreshDbRequested,
-			&dataCoordinator, &DataCoordinator::refreshDatabase);
-	QObject::connect(ui, &DatabaseUI::forceRederiveRequested,
-			&dataCoordinator, &DataCoordinator::forceRederiveData);
-	QObject::connect(ui, &DatabaseUI::exportRequested,
-			&dataCoordinator, &DataCoordinator::exportData);
+	QObject::connect(ui, &DatabaseUI::refreshDbRequested, [&]
+	{
+		ui->setButtonsEnabled(false);
+		dataCoordinator.refreshDatabase();
+	});
+	QObject::connect(ui, &DatabaseUI::forceRederiveRequested, [&]
+	{
+		ui->setButtonsEnabled(false);
+		dataCoordinator.forceRederiveData();
+	});
+	QObject::connect(ui, &DatabaseUI::exportRequested, [&](const QString& exportDir)
+	{
+		ui->setButtonsEnabled(false);
+		dataCoordinator.exportData(exportDir);
+	});
+
+	// Handle signals from the DataCoordinator
+	QObject::connect(&dataCoordinator, &DataCoordinator::currentJobFinished, [=]
+	{
+		ui->setButtonsEnabled(true);
+	});
 
 	// Good to go!
 	ui->show();
